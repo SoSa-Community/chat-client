@@ -1,3 +1,6 @@
+config.js
+*.code-workspace
+
 # Logs
 logs
 *.log
