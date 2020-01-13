@@ -9,28 +9,35 @@ class ChatMessageHandler {
 }
 
 class ChatEventHandler {
-    
-    MessageRenderer;
 
-    constructor(MessageHandler) {
+    MessageRenderer;
+    client;
+
+    constructor(MessageHandler, client) {
 
         if(MessageHandler === null || MessageHandler === undefined){
             MessageHandler = ChatMessageHandler;
         }
         this.MessageRenderer = MessageHandler;
+        this.client = client;
+    }
+
+    setupEventHandlers(){
+        /* to help resolve scope issues with "this" */
+        const client = this.client;
+
+        client.addSocketEventHandler('_error', (eventData) => client.eventHandler.error(eventData, this, client));
+        client.addSocketEventHandler('_success', (eventData) => client.eventHandler.success(eventData, this, client));
+
+        client.addSocketEventHandler('connect', (socket) => client.eventHandler.connect(this, client));
+        client.addSocketEventHandler('disconnect', (reason) => client.eventHandler.disconnect(reason, this, client));
+
+        client.addSocketEventHandler('message', (eventData) => client.eventHandler.message(eventData, this, client));
     }
 
     connect(socket, client) {
         console.debug('Connected');
         client.join('someroom');
-    }
-
-    message(msg, socket, client) {
-        console.debug('Message received: ', msg);
-        const message = new this.MessageRenderer(msg);
-        message.render();
-
-        return message;
     }
 
     success(msg, socket, client){
@@ -41,8 +48,16 @@ class ChatEventHandler {
         console.debug(msg);
     }
 
-    disconnect(socket, client) {
-        console.debug('Disconnected');
+    disconnect(reason, socket, client) {
+        console.debug('Disconnected because', reason);
+    }
+
+    message(msg, socket, client) {
+        console.debug('Message received: ', msg);
+        const message = new this.MessageRenderer(msg);
+        message.render();
+
+        return message;
     }
 }
 
@@ -73,7 +88,8 @@ class ChatClient {
             }
         }
 
-        this.eventHandler = new this.EventHandler(this.MessageHandler);
+        this.eventHandler = new this.EventHandler(this.MessageHandler, this);
+
     }
 
     generateRand() {
@@ -84,23 +100,16 @@ class ChatClient {
         return `${this.generateRand()}-${this.generateRand()}-${this.generateRand()}-${this.generateRand()}-${this.generateRand()}`;
     }
 
-    connect(){
+    addSocketEventHandler(event, handler){
+        this.socket.on(event, handler);
+    }
+
+    connect() {
         const client = this;
 
         this.socket = io(CONFIG.host);
-
-        this.socket.on('_error', (msg) => client._error(msg, this, client));
-        this.socket.on('_success', (msg) => client._success(msg, this, client));
-        this.socket.on('message', (msg) => client._message(msg, this, client));
-        this.socket.on('connect', () => client._connect(this, client));
-        this.socket.on('disconnect', () => client._disconnect(this, client));
+        this.eventHandler.setupEventHandlers();
     }
-
-    _error(msg, socket, client) { client.eventHandler.message(msg, socket, client); }
-    _success(msg, socket, client){ client.eventHandler.success(msg, socket, client); }
-    _message(msg, socket, client) { client.eventHandler.message(msg, socket, client); }
-    _connect(socket, client) { client.eventHandler.connect(socket, client) };
-    _disconnect(socket, client) { client.eventHandler.disconnect(socket, client); }
 
     join(room){
         this.emit('join',{room:room});
@@ -117,11 +126,8 @@ class ChatClient {
         }
 
         data._id = this.generateId();
-
-        this.socket.emit(type, data);        
+        this.socket.emit(type, data);
     }
-
-
 
 }
 
