@@ -44,7 +44,9 @@ class ChatClient {
     connect() {
         const client = this;
 
-        this.socket = io(CONFIG.host);
+        this.socket = io(CONFIG.host,{
+            query: {token: CONFIG.api_key}
+        });
         this.eventHandler.setupEventHandlers();
     }
 

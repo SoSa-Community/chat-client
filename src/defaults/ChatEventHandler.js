@@ -15,31 +15,31 @@ class ChatEventHandler {
     setupEventHandlers(){
         /* to help resolve scope issues with "this" */
         const client = this.client;
+        const handler = this;
 
-        client.addSocketEventHandler('_error', (eventData) => client.eventHandler.error(eventData, this, client));
-        client.addSocketEventHandler('_success', (eventData) => client.eventHandler.success(eventData, this, client));
+        client.addSocketEventHandler('_error', (eventData) => handler.error(eventData, this, client));
+        client.addSocketEventHandler('_success', (eventData) => handler.success(eventData, this, client));
 
-        client.addSocketEventHandler('connect', (socket) => client.eventHandler.connect(this, client));
-        client.addSocketEventHandler('disconnect', (reason) => client.eventHandler.disconnect(reason, this, client));
+        client.addSocketEventHandler('connect', (socket) => handler.connect(this, client));
+        client.addSocketEventHandler('disconnect', (reason) => handler.disconnect(reason, this, client));
 
-        client.addSocketEventHandler('message', (eventData) => client.eventHandler.message(eventData, this, client));
+        client.addSocketEventHandler('message', (eventData) => handler.message(eventData, this, client));
     }
 
     connect(socket, client) {
         console.debug('Connected');
-        client.join('someroom');
     }
 
     success(msg, socket, client){
-        console.debug(msg);
+        console.debug('Success:', msg);
     }
 
     error(msg, socket, client){
-        console.debug(msg);
+        console.debug('Error: ', msg);
     }
 
     disconnect(reason, socket, client) {
-        console.debug('Disconnected because', reason);
+        console.debug('Disconnected because: ', reason);
     }
 
     message(msg, socket, client) {

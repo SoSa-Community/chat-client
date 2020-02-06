@@ -1,3 +1,4 @@
 const CONFIG = {
-    host: 'https://localhost'
+    host: 'https://localhost',
+    api_key: ''
 };
