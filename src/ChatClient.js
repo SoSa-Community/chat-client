@@ -1,32 +1,35 @@
-class ChatClient {
+import {Events, Room} from './import.js';
 
-    EventHandler = ChatEventHandler;
-    MessageHandler = ChatMessageHandler;
+/**
+ * Object.prototype.forEach() polyfill
+ * Refactored from https://gomakethings.com/looping-through-objects-with-es6/
+ * @author Chris Ferdinandi
+ * @author James Mahy
+ * @license MIT
+ */
+
+if (!Object.prototype.forEach) {
+    Object.defineProperty(Object.prototype, 'forEach', {
+        value: function (callback, thisArg) {
+            if (this == null) throw new TypeError('Not an object');
+
+            for (let key in this) {
+                if (this.hasOwnProperty(key)) callback.call(thisArg, this[key], key, this);
+            }
+        }
+    });
+
+}
+
+export class ChatClient {
 
     socket = null;
     eventHandler = null;
     messages = [];
+    connected = false;
 
-    constructor(EventHandler, MessageHandler){
-
-        if(EventHandler !== null && EventHandler !== undefined){
-            if(EventHandler.prototype instanceof ChatEventHandler){
-                this.EventHandler = EventHandler;
-            }else{
-                throw "Message Handler must be Instance of ChatEventHandler"
-            }
-
-        }
-        if(MessageHandler !== null && MessageHandler !== undefined){
-            if(MessageHandler.prototype instanceof ChatMessageHandler){
-                this.MessageHandler = MessageHandler;
-            }else{
-                throw "Message Handler must be Instance of ChatMessageHandler"
-            }
-        }
-
-        this.eventHandler = new this.EventHandler(this.MessageHandler, this);
-
+    constructor(){
+        this.eventHandler = new Events(this);
     }
 
     generateRand() {
@@ -50,22 +53,75 @@ class ChatClient {
         this.eventHandler.setupEventHandlers();
     }
 
-    join(room){
-        this.emit('join',{room:room});
-        console.debug('Joined Room:', room);
-    }
+    /**
+     * Emit's data to the socket
+     * @param {string} type - type of emit to create
+     * @param {object} data - Data to send
+     * @callback {function(err, data, request, socket, client)} hookCallback - callback if the call requires data back (through _error or _success)
+     */
+    emit(type = 'message', data = {}, hookCallback=null){
+        if(this.connected){
+            if(typeof(data) !== 'object')   data = {};
 
-    send(room, message){
-        this.emit('message', {room:room, msg:message});
-    }
+            data._id = this.generateId();
+            if(hookCallback) this.eventHandler.addHook(data._id, hookCallback);
 
-    emit(type = 'message', data = {}){
-        if(typeof(data) !== 'object'){
-            data = {};
+            console.debug('Emitting', type, data);
+
+            this.socket.emit(type, data);
+        }else{
+            console.debug('Not connected to the server');
         }
+    }
 
-        data._id = this.generateId();
-        this.socket.emit(type, data);
+    rooms(){
+        const client = this;
+        return {
+            /**
+             * Retrieves the list of rooms for the specified community
+             * @param {function(err, data, request, socket, client)} callback - what to do when we get the list back
+             * @param communityID - Community ID that you want to get the rooms for
+             */
+            list: (callback, communityID) => {
+                client.emit('rooms/list', {community_id: communityID}, callback);
+            },
+
+            /**
+             * Joins a room, on success / failure server will emit back to the callback
+             *
+             * @param {function(err, Room)} callback - this will run when you've successfully joined the room / if there is a response from server (eg bad permissions / password etc)
+             * @param {string} communityID - Community ID you want to join a room in
+             * @param {string} roomID - Room ID you want to join
+             * @param {string} password - password required to join the room
+             * @param {Room} room - Room object
+             */
+            join: (callback, communityID, roomID, password, room= new Room(this)) => {
+                let data = {community_id: communityID, room_id:roomID};
+                if(password && password.length > 0) data.password = password;
+
+                client.emit(
+                    'rooms/join',
+                     data,
+                    (err, data, request, socket, client) => {
+                        if(!err) room.parseJSON(data);
+                        callback(err, room);
+                    }
+                );
+            },
+
+            /**
+             * Send a message to the specified room, on success server will emit back to the callback
+             * this can be used along side a timer to validate message success
+             *
+             * @param {function(err, data, request, socket, client)} callback - runs when the message is successfully sent. This also triggers on error.
+             * @param {string} communityID - Community ID you want to send a message to
+             * @param {string} roomID - Room ID you want to send a message to
+             * @param {string} message - Message you wish to send
+             */
+            send: (callback, communityID='', roomID='', message='') => {
+                client.emit('rooms/message', {community_id: communityID, room_id:roomID, message:message});
+            }
+        }
     }
 
 }

@@ -1,4 +1,4 @@
-class ChatMessageHandler {
+export class Message {
     message = '';
 
     constructor(message){this.message = message;}

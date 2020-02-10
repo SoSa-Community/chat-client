@@ -3,13 +3,13 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
         <script src="src/config.js"></script>
 
-        <script src="src/defaults/ChatMessageHandler.js"></script>
-        <script src="src/defaults/ChatEventHandler.js"></script>
-        <script src="src/ChatClient.js"></script>
-
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
         <script>
-                const client = new ChatClient();
+            let client;
+        </script>
+        <script type="module">
+                import { ChatClient } from './src/import.js';
+                client = new ChatClient();
         </script>
     </head>
     <body>

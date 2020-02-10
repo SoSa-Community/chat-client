@@ -7,17 +7,17 @@ describe('ChatClient Class', () => {
     });
 
     describe('When I create an instance with a Custom EventHandler', () => {
-        context('Which extends from ChatEventHandler', () => {
+        context('Which extends from Events', () => {
             it('Should not throw an exception', (done) => {
 
-                class TestEventHandler extends ChatEventHandler{}
+                class TestEventHandler extends Events{}
 
                 chai.expect(() => new ChatClient(TestEventHandler)).to.not.throw();
                 done();
             });
         });
 
-        context('Which doesn\'t extend from ChatEventHandler', () => {
+        context('Which doesn\'t extend from Events', () => {
             it('Should throw an exception', (done) => {
                 class TestEventHandler {}
                 chai.expect(() => new ChatClient(TestEventHandler)).to.throw();
@@ -27,17 +27,17 @@ describe('ChatClient Class', () => {
     });
 
     describe('When I create an instance with a Custom MessageHandler', () => {
-        context('Which extends from ChatMessageHandler', () => {
+        context('Which extends from Message', () => {
             it('Should not throw an exception', (done) => {
 
-                class TestMessageHandler extends ChatMessageHandler{}
+                class TestMessageHandler extends Message{}
 
                 chai.expect(() => new ChatClient(null, TestMessageHandler)).to.not.throw();
                 done();
             });
         });
 
-        context('Which doesn\'t extend from ChatEventHandler', () => {
+        context('Which doesn\'t extend from Events', () => {
             it('Should throw an exception', (done) => {
                 class TestMessageHandler {}
                 chai.expect(() => new ChatClient(null, TestMessageHandler)).to.throw();
