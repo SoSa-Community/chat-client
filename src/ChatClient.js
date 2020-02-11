@@ -27,6 +27,13 @@ export class ChatClient {
     eventHandler = null;
     messages = [];
     connected = false;
+    authenticated = false;
+    user = {
+        session_id: this.generateId(),
+        username: null,
+        nickname: null,
+        token: null
+    };
 
     constructor(){
         this.eventHandler = new Events(this);
@@ -48,9 +55,19 @@ export class ChatClient {
         const client = this;
 
         this.socket = io(CONFIG.host,{
-            query: {token: CONFIG.api_key}
+            query: {api_key: CONFIG.api_key}
         });
         this.eventHandler.setupEventHandlers();
+    }
+
+    /**
+     * Authenticate with the server before the timeout
+     *
+     * @param {function(err, data)} callback
+     * @param sessionID
+     */
+    authenticate(callback, sessionID) {
+        this.emit('authenticate', {session_id: sessionID}, callback);
     }
 
     /**
@@ -105,6 +122,27 @@ export class ChatClient {
                     (err, data, request, socket, client) => {
                         if(!err) room.parseJSON(data);
                         callback(err, room);
+                    }
+                );
+            },
+
+            /**
+             * Get's the online users
+             *
+             * @param {function(err, userList)} callback - this will run when you've successfully joined the room / if there is a response from server (eg bad permissions / password etc)
+             * @param {string} communityID - Community ID you want to join a room in
+             * @param {string} roomID - Room ID you want to join
+             */
+            online: (callback, communityID, roomID) => {
+                let data = {community_id: communityID, room_id:roomID};
+                client.emit(
+                    'rooms/online',
+                    data,
+                    (err, data, request, socket, client) => {
+                        let ret = [];
+                        if(!err) ret = data.user_list;
+
+                        callback(err, ret);
                     }
                 );
             },

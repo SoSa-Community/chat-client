@@ -32,6 +32,17 @@ export class Events {
     connect(socket, client) {
         console.debug('Connected');
         client.connected = true;
+
+        client.authenticate((err, data) => {
+                if(!err){
+                    client.authenticated = true;
+                    client.user.username = data.username;
+                    client.user.nickname = data.nickname;
+                    client.user.token = data.token;
+
+                    console.debug('Authenticated successful, got username:', data.username);
+                }
+        }, client.user.session_id);
     }
 
     success(msg, socket, client){
@@ -59,8 +70,6 @@ export class Events {
     }
 
     triggerHook(msg, socket, client){
-        console.debug('Trigger hook',msg);
-
         if(msg.request && msg.request._id && this.hooks[msg.request._id]){
             let callback = this.hooks[msg.request._id];
             delete this.hooks[msg.request._id];
