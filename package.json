@@ -1,0 +1,30 @@
+{
+  "name": "@sosa/chat-client",
+  "type" : "module",
+  "version": "0.0.1",
+  "description": "SoSa Chat Client Library",
+  "main": "module.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SoSa-Community/chat-client.git"
+  },
+  "keywords": [
+    "chat",
+    "sosa",
+    "community",
+    "javascript",
+    "nodejs"
+  ],
+  "author": "James Mahy",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/SoSa-Community/chat-client/issues"
+  },
+  "homepage": "https://github.com/SoSa-Community/chat-client#readme"
+}

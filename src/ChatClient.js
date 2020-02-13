@@ -1,4 +1,4 @@
-import {Events, Room} from './import.js';
+import {Listeners, ResponseHooks, Middleware, Room} from '../module.js';
 
 /**
  * Object.prototype.forEach() polyfill
@@ -23,8 +23,18 @@ if (!Object.prototype.forEach) {
 
 export class ChatClient {
 
+    config = {
+        host: '',
+        api_key: ''
+    };
+
+    socketIO = null;
+
     socket = null;
-    eventHandler = null;
+    listeners = new Listeners(this);
+    hooks = new ResponseHooks(this);
+    middleware = new Middleware(this);
+
     messages = [];
     connected = false;
     authenticated = false;
@@ -35,8 +45,9 @@ export class ChatClient {
         token: null
     };
 
-    constructor(){
-        this.eventHandler = new Events(this);
+    constructor(config, socketIO){
+        this.config = config;
+        this.socketIO = socketIO;
     }
 
     generateRand() {
@@ -47,17 +58,26 @@ export class ChatClient {
         return `${this.generateRand()}-${this.generateRand()}-${this.generateRand()}-${this.generateRand()}-${this.generateRand()}`;
     }
 
-    addSocketEventHandler(event, handler){
-        this.socket.on(event, handler);
-    }
-
     connect() {
         const client = this;
 
-        this.socket = io(CONFIG.host,{
-            query: {api_key: CONFIG.api_key}
+        this.socket = this.socketIO(this.config.host,{
+            transports: ['websocket'],
+            pingTimeout: 30000,
+            query: {api_key: this.config.api_key}
         });
-        this.eventHandler.setupEventHandlers();
+
+        this.listeners.add( {
+            'connect': (socket) => this.listeners.connect(this, client),
+            'disconnect': (reason) => this.listeners.disconnect(reason, this, client),
+            'message': (eventData) => this.listeners.message(eventData, this, client),
+            'error': (eventData) => this.listeners.error(eventData, this, client),
+            'connect_error': (eventData) => this.listeners.connectError(eventData, this, client),
+            'connect_timeout': (eventData) => this.listeners.connectTimeout(eventData, this, client),
+            '_error': (eventData) => this.listeners._error(eventData, this, client),
+            '_success': (eventData) => this.listeners._success(eventData, this, client)
+        });
+
     }
 
     /**
@@ -74,16 +94,14 @@ export class ChatClient {
      * Emit's data to the socket
      * @param {string} type - type of emit to create
      * @param {object} data - Data to send
-     * @callback {function(err, data, request, socket, client)} hookCallback - callback if the call requires data back (through _error or _success)
+     * @callback {function(err, data, request, socket, client)} hook - callback if the call requires data back (through _error or _success)
      */
-    emit(type = 'message', data = {}, hookCallback=null){
+    emit(type = 'message', data = {}, hook=null){
         if(this.connected){
             if(typeof(data) !== 'object')   data = {};
 
             data._id = this.generateId();
-            if(hookCallback) this.eventHandler.addHook(data._id, hookCallback);
-
-            console.debug('Emitting', type, data);
+            if(hook) this.hooks.add(data._id, hook);
 
             this.socket.emit(type, data);
         }else{

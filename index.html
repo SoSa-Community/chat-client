@@ -1,15 +1,18 @@
 <html>
     <head>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
-        <script src="src/config.js"></script>
+        <script src="config.js"></script>
 
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
         <script>
             let client;
         </script>
         <script type="module">
-                import { ChatClient } from './src/import.js';
-                client = new ChatClient();
+                import { ChatClient } from './module.js';
+                client = new ChatClient({
+                    host: CONFIG.host,
+                    api_key: CONFIG.api_key
+                });
                 client.connect();
 
         </script>
