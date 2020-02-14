@@ -25,7 +25,6 @@ export class Room {
      */
     join(callback, password) {
         if(!password && this.password) password = this.password;
-
         this._client.rooms().join(callback, this.community_id, this.name, password, this);
     }
 

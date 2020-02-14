@@ -1,4 +1,4 @@
-import {ChatClient, Message, Room} from '../../module.js';
+import {ChatClient} from '../../module.js';
 
 export class Listeners {
 
@@ -19,7 +19,7 @@ export class Listeners {
     /**
      * Adds a listener to the socket
      * @param {string|object} event - Socket Event you want to listen for
-     * @param {function(err, data, request, socket, client)|null} handler - the code to run when we get an _error or _success
+     * @param {function(err, data, request, client)|null} handler - the code to run when we get an _error or _success
      */
     add(event, handler=null){
         let add = (event, handler) => {
@@ -35,20 +35,22 @@ export class Listeners {
 
     }
 
-    connect(socket, client) {
+    connect() {
         console.debug('Connected');
-        client.connected = true;
 
-        this.client.middleware.trigger('connected', {}, (data) => {
+        let client = this.client;
+
+        client.connected = true;
+        client.middleware.trigger('connected', {}, (data) => {
 
             data.session_id = client.user.session_id;
-            this.client.middleware.trigger('before_authenticate', data, (data) => {
+            client.middleware.trigger('before_authenticate', data, (data) => {
 
                 client.authenticate((err, sessionData) => {
                     data.err = err;
                     data.sessionData = sessionData;
 
-                    this.client.middleware.trigger(
+                    client.middleware.trigger(
                         'after_authenticate',
                          data,
                         (data) => {
@@ -59,7 +61,7 @@ export class Listeners {
                                 client.user.nickname = data.sessionData.nickname;
                                 client.user.token = data.sessionData.token;
 
-                                this.client.middleware.trigger('after_authenticated', data, () => {
+                                client.middleware.trigger('after_authenticated', data, () => {
                                         console.debug('Authenticated successful, got username:', data.sessionData.username);
                                 });
                             }else{
@@ -73,36 +75,48 @@ export class Listeners {
         });
     }
 
-    disconnect(reason, socket, client) {
-        console.debug('Disconnected because: ', reason);
-        client.connected = false;
-        this.client.hooks.clear();
+    disconnect(reason) {
+        this.client.middleware.trigger('disconnected', reason, (reason) => {
+            console.debug('Disconnected because: ', reason);
+            this.client.connected = false;
+            this.client.hooks.clear();
+        });
     }
 
-    message(message, socket, client) {
+    message(message) {
         this.client.middleware.trigger('receive_message', message, (message) => {
             console.log(message);
         });
     }
 
-    _success(message, socket, client){
-        this.client.hooks.trigger(message, socket, client);
+    _success(packet){
+        this.client.middleware.trigger('_success', packet, (packet) => {
+            this.client.hooks.trigger(packet);
+        });
     }
 
-    _error(message, socket, client){
-        this.client.hooks.trigger(message, socket, client);
+    _error(packet){
+        this.client.middleware.trigger('_error', packet, (packet) => {
+            this.client.hooks.trigger(packet);
+        });
     }
 
-    error(message, socket, client){
-        console.debug(message);
+    error(message){
+        this.client.middleware.trigger('error', message, (message) => {
+            console.debug(message);
+        });
     }
 
-    connectError(message, socket, client) {
-        console.debug('Connect Error: ', message);
+    connectError(message) {
+        this.client.middleware.trigger('connection_error', message, (message) => {
+            console.debug('Connect Error: ', message);
+        });
     }
 
-    connectTimeout(message, socket, client) {
-        console.debug('Connect timeout: ', message);
+    connectTimeout(message) {
+        this.client.middleware.trigger('connection_timeout', message, (message) => {
+            console.debug('Connect timeout: ', message);
+        });
     }
 
 

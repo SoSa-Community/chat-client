@@ -68,14 +68,14 @@ export class ChatClient {
         });
 
         this.listeners.add( {
-            'connect': (socket) => this.listeners.connect(this, client),
-            'disconnect': (reason) => this.listeners.disconnect(reason, this, client),
-            'message': (eventData) => this.listeners.message(eventData, this, client),
-            'error': (eventData) => this.listeners.error(eventData, this, client),
-            'connect_error': (eventData) => this.listeners.connectError(eventData, this, client),
-            'connect_timeout': (eventData) => this.listeners.connectTimeout(eventData, this, client),
-            '_error': (eventData) => this.listeners._error(eventData, this, client),
-            '_success': (eventData) => this.listeners._success(eventData, this, client)
+            'connect': (socket) => this.listeners.connect(),
+            'disconnect': (reason) => this.listeners.disconnect(reason),
+            'message': (message) => this.listeners.message(message),
+            'error': (error) => this.listeners.error(error),
+            'connect_error': (error) => this.listeners.connectError(error),
+            'connect_timeout': (error) => this.listeners.connectTimeout(error),
+            '_error': (errorData) => this.listeners._error(errorData),
+            '_success': (errorData) => this.listeners._success(errorData)
         });
 
     }
@@ -99,8 +99,8 @@ export class ChatClient {
     emit(type = 'message', data = {}, hook=null){
         if(this.connected){
             if(typeof(data) !== 'object')   data = {};
-
             data._id = this.generateId();
+
             if(hook) this.hooks.add(data._id, hook);
 
             this.socket.emit(type, data);
@@ -137,8 +137,8 @@ export class ChatClient {
                 client.emit(
                     'rooms/join',
                      data,
-                    (err, data, request, socket, client) => {
-                        if(!err) room.parseJSON(data);
+                    (err, data) => {
+                        if(!err) room.parseJSON(data.room);
                         callback(err, room);
                     }
                 );
@@ -156,7 +156,7 @@ export class ChatClient {
                 client.emit(
                     'rooms/online',
                     data,
-                    (err, data, request, socket, client) => {
+                    (err, data, request, client) => {
                         let ret = [];
                         if(!err) ret = data.user_list;
 
