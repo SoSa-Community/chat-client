@@ -138,8 +138,12 @@ export class ChatClient {
                     'rooms/join',
                      data,
                     (err, data) => {
-                        if(!err) room.parseJSON(data.room);
-                        callback(err, room);
+                        let userList = [];
+                        if(!err){
+                            room.parseJSON(data.room);
+                            userList = data.user_list;
+                        }
+                        callback(err, room, userList);
                     }
                 );
             },
