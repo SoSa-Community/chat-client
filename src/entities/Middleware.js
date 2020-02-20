@@ -18,17 +18,28 @@ export class Middleware {
     /***
      * Adds middleware to a specified event
      *
-     * @param {string} event - What event will the middleware trigger for
+     * @param {string|object} event - What event will the middleware trigger for
      * @param {function(data, client, event)} middleware - Middleware code to run
      * @param {string} signature - Not required, but useful if you need to remove this middleware independently
      */
     add(event, middleware, signature=''){
-        console.debug('Adding middleware to event:', event, signature);
-        if(!this.middleware[event]) this.middleware[event] = {};
+        let add = (event, middleware, signature) => {
+            console.debug('Adding middleware to event:', event, signature);
 
-        if(signature.length === 0) signature = this.client.generateId();
+            if(!this.middleware[event]) this.middleware[event] = {};
 
-        this.middleware[event][signature] = middleware;
+            if(!signature || signature.length === 0) signature = this.client.generateId();
+
+            this.middleware[event][signature] = middleware;
+        };
+
+        if(typeof(event) === 'string'){
+            add(event, middleware, signature);
+        }else{
+            event.forEach((middleware, event) => {
+                 add(event, middleware);
+            });
+        }
     }
 
     clear(){this.middleware = [];}
