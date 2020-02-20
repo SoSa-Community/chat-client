@@ -80,6 +80,10 @@ export class ChatClient {
 
     }
 
+    disconnect() {
+        this.socket.disconnect();
+    }
+
     /**
      * Authenticate with the server before the timeout
      *
