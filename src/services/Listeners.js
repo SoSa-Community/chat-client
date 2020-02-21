@@ -1,4 +1,4 @@
-import {ChatClient} from '../../module.js';
+import {ChatClient, Message} from '../../module.js';
 
 export class Listeners {
 
@@ -84,8 +84,13 @@ export class Listeners {
     }
 
     message(message) {
-        this.client.middleware.trigger('receive_message', message, (message) => {
-            console.log(message);
+
+        let messageInstance = Message.fromJSON(message);
+
+        this.client.parsers.parse(messageInstance, (messageInstance) => {
+            this.client.middleware.trigger('receive_message', messageInstance, (messageInstance) => {
+                console.debug('Message', messageInstance);
+            });
         });
     }
 
