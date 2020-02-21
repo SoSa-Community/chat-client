@@ -1,4 +1,4 @@
-import {Listeners, ResponseHooks, Middleware, Room} from '../module.js';
+import {Listeners, ResponseHooks, Middleware, MessageParsers, Room} from '../module.js';
 
 /**
  * Object.prototype.forEach() polyfill
@@ -34,6 +34,7 @@ export class ChatClient {
     listeners = new Listeners(this);
     hooks = new ResponseHooks(this);
     middleware = new Middleware(this);
+    parsers = new MessageParsers(this);
 
     messages = [];
     connected = false;
