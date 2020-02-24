@@ -19,7 +19,7 @@ export class Middleware {
      * Adds middleware to a specified event
      *
      * @param {string|object} event - What event will the middleware trigger for
-     * @param {function(data, client, event)} middleware - Middleware code to run
+     * @param {function(data, client, event)|undefined} middleware - Middleware code to run
      * @param {string} signature - Not required, but useful if you need to remove this middleware independently
      */
     add(event, middleware, signature=''){

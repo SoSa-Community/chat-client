@@ -135,7 +135,7 @@ export class ChatClient {
              * @param {string} password - password required to join the room
              * @param {Room} room - Room object
              */
-            join: (callback, communityID, roomID, password, room= new Room(this)) => {
+            join: (callback, communityID, roomID, password='', room= new Room(this)) => {
                 let data = {community_id: communityID, room_id:roomID};
                 if(password && password.length > 0) data.password = password;
 
