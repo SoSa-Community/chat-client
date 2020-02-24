@@ -1,5 +1,4 @@
 import {ChatClient} from '../../module.js';
-import * as InteractionManager from 'react-native';
 
 export class MessageParsers {
 
