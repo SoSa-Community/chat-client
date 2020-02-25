@@ -10,6 +10,7 @@ export class Message {
     sender_uid = '';
     nickname = '';
     username = '';
+    picture = '';
 
     nsfw = false;
     spoilers = false;
