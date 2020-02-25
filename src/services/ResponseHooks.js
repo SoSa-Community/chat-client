@@ -17,11 +17,8 @@ export class ResponseHooks {
     }
 
     trigger(msg){
-
         if(msg.request && msg.request._id && this.hooks[msg.request._id]){
             let callback = this.hooks[msg.request._id];
-            delete this.hooks[msg.request._id];
-
             try{
                 callback(
                             msg.error ? new SoSaError(msg.error.code, msg.error.message) : null,
@@ -32,6 +29,7 @@ export class ResponseHooks {
             }catch(e){
                 console.debug('Hook failed', e);
             }
+            delete this.hooks[msg.request._id];
         }
     }
 
