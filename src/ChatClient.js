@@ -76,7 +76,9 @@ export class ChatClient {
             'connect_error': (error) => this.listeners.connectError(error),
             'connect_timeout': (error) => this.listeners.connectTimeout(error),
             '_error': (errorData) => this.listeners._error(errorData),
-            '_success': (errorData) => this.listeners._success(errorData)
+            '_success': (errorData) => this.listeners._success(errorData),
+            'rooms/join': (userData) => this.listeners.rooms().join(userData),
+            'rooms/leave': (userData) => this.listeners.rooms().leave(userData)
         });
 
     }
@@ -150,6 +152,22 @@ export class ChatClient {
                         }
                         callback(err, room, userList);
                     }
+                );
+            },
+
+            /**
+             * leaves a room, on success / failure server will emit back to the callback
+             *
+             * @param {function(err, Room)} callback - this will run when you've successfully joined the room / if there is a response from server (eg bad permissions / password etc)
+             * @param {string} communityID - Community ID you want to leave a room in
+             * @param {string} roomID - Room ID you want to leave
+             */
+            leave: (callback, communityID, roomID) => {
+                let data = {community_id: communityID, room_id:roomID};
+                client.emit(
+                    'rooms/leave',
+                    data,
+                    (err, data) => callback(err)
                 );
             },
 

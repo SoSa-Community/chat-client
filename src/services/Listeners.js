@@ -124,6 +124,23 @@ export class Listeners {
         });
     }
 
+    rooms() {
+        const client = this.client;
+        return {
+            join: (userData) => {
+                client.middleware.trigger('rooms/join', userData, (user) => {
+                    console.debug('User Joined: ', user);
+                });
+            },
+            leave: (userData) => {
+                client.middleware.trigger('rooms/leave', userData, (user) => {
+                    console.debug('User Left: ', user);
+                });
+            }
+        }
+
+    }
+
 
 
 }
