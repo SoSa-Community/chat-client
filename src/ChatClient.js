@@ -63,6 +63,7 @@ export class ChatClient {
         const client = this;
 
         this.socket = this.socketIO(this.config.host,{
+            forceNew: true,
             transports: ['websocket'],
             pingTimeout: 30000,
             query: {api_key: this.config.api_key}
