@@ -16,7 +16,8 @@ if (!Object.prototype.forEach) {
             for (let key in this) {
                 if (this.hasOwnProperty(key)) callback.call(thisArg, this[key], key, this);
             }
-        }
+        },
+        writable: true
     });
 
 }
