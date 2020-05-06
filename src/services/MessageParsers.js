@@ -1,4 +1,4 @@
-import {ChatClient} from '../../module.js';
+import {ChatClient} from '../module.js';
 
 export class MessageParsers {
 

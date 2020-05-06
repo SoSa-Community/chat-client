@@ -1,4 +1,4 @@
-import {ChatClient, SoSaError} from '../../module.js';
+import {ChatClient, SoSaError} from '../module.js';
 
 export class ResponseHooks {
 

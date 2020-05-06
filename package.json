@@ -3,7 +3,7 @@
   "type" : "module",
   "version": "0.0.1",
   "description": "SoSa Chat Client Library",
-  "main": "module.js",
+  "main": "src/module.js",
   "directories": {
     "test": "test"
   },

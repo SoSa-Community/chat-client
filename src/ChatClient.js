@@ -1,4 +1,4 @@
-import {Listeners, ResponseHooks, Middleware, MessageParsers, Room} from '../module.js';
+import {Listeners, ResponseHooks, Middleware, MessageParsers, Room} from './module.js';
 
 /**
  * Object.prototype.forEach() polyfill
@@ -40,16 +40,13 @@ export class ChatClient {
     messages = [];
     connected = false;
     authenticated = false;
-    user = {
-        session_id: this.generateId(),
-        username: null,
-        nickname: null,
-        token: null
-    };
+    session = null;
+    userId = null;
 
-    constructor(config, socketIO){
+    constructor(config, socketIO, session, userId){
         this.config = config;
         this.socketIO = socketIO;
+        this.session = session;
     }
 
     generateRand() {
@@ -61,8 +58,6 @@ export class ChatClient {
     }
 
     connect() {
-        const client = this;
-
         this.socket = this.socketIO(this.config.host,{
             forceNew: true,
             transports: ['websocket'],

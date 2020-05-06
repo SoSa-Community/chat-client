@@ -1,4 +1,4 @@
-import {ChatClient, Message} from '../../module.js';
+import {ChatClient, Message} from '../module.js';
 
 export class Listeners {
 
@@ -43,7 +43,8 @@ export class Listeners {
         client.connected = true;
         client.middleware.trigger('connected', {}, (data) => {
 
-            data.session_id = client.user.session_id;
+            data.session = client.session;
+
             client.middleware.trigger('before_authenticate', data, (data) => {
 
                 client.authenticate((err, sessionData) => {
@@ -57,12 +58,8 @@ export class Listeners {
 
                             if (!data.err) {
                                 client.authenticated = true;
-                                client.user.username = data.sessionData.username;
-                                client.user.nickname = data.sessionData.nickname;
-                                client.user.token = data.sessionData.token;
-
                                 client.middleware.trigger('after_authenticated', data, () => {
-                                        console.debug('Authenticated successful, got username:', data.sessionData.username);
+                                        console.debug('Authentication successful');
                                 });
                             }else{
                                 console.debug(data.err);
