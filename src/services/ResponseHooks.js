@@ -17,6 +17,7 @@ export class ResponseHooks {
     }
 
     trigger(msg){
+        console.log(msg);
         if(msg.request && msg.request._id && this.hooks[msg.request._id]){
             let callback = this.hooks[msg.request._id];
             try{

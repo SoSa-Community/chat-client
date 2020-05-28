@@ -43,8 +43,6 @@ export class Listeners {
         client.connected = true;
         client.middleware.trigger('connected', {}, (data) => {
 
-            data.session = client.session;
-
             client.middleware.trigger('before_authenticate', data, (data) => {
 
                 client.authenticate((err, sessionData) => {
@@ -66,7 +64,7 @@ export class Listeners {
                             }
                         }
                     );
-                }, data.session_id);
+                }, data.session_token);
 
             });
         });

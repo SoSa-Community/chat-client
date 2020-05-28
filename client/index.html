@@ -1,0 +1,64 @@
+<html>
+    <head>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+        <script src="/config.js"></script>
+
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+        <script>
+            let client;
+        </script>
+        <script type="module">
+                let sessionToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImMzMWJjYzUyMTgwNzU0ZGNiODljOTNhZjNlYjA5YjdjNGUyMDEzMDY1OGEwNzE4MGVkNTBhZDVhZmIwMTdmNDE5NzFmNzdjZjgwODY3NzQzNGM3MmNiNTM1MzEzNGM1YWFlYjEiLCJyZWZyZXNoX3Rva2VuIjoiZTcxNmZmNWM3M2EwZjcxY2Y3ODU3YzAxYTE1ODA0Y2RjYjIxMGY0ZmJlMWNmYmYxOGQ3MjFkNTcxMDlkM2EyMzFkNjA5YmVkYTg1NTYzYjI2ZjQ1NmUxMmJmODM5ZjhlYzg3YyJ9.HMfirEr_SKruaIHETeOCXdYJwHdLbgpJpk8MJ09PkX4";
+                let deviceId = "3ed8d38bfdd4850c5eb02865d588c1b77c75da573a4350a8b4d6308f692b6f9a";
+
+                import { ChatClient } from '/module.js';
+                client = new ChatClient(
+                    {host: CONFIG.host, api_key: CONFIG.api_key},
+                    io,
+                    () => ({ token: sessionToken, userId: 1, deviceId: deviceId})
+                );
+
+                let middleware = client.middleware;
+
+                middleware.clear();
+                middleware.add({
+                    'receive_message': (message, client) => {
+                        console.log('receive_message', message);
+                        return message;
+                    },
+                    'after_authenticated': (authData, client) => {
+                        console.log('after_authenticated', authData);
+                        return authData;
+                    },
+                    'disconnected': (message, client) => {
+                        console.log('disconnected', message);
+                        return message;
+                    },
+                    'error': (message, client) => {
+                        console.log('error', message);
+                        return message;
+                    },
+                    'rooms/join': (userData) => {
+                        console.log('rooms/join', userData);
+                        return userData;
+                    },
+                    'rooms/left': (userData) => {
+                        console.log('rooms/left', userData);
+                        return userData;
+                    }
+                });
+
+                client.connect();
+
+        </script>
+    </head>
+    <body>
+
+
+
+
+    </body>
+
+
+
+</html>

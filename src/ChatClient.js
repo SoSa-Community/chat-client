@@ -37,16 +37,16 @@ export class ChatClient {
     middleware = new Middleware(this);
     parsers = new MessageParsers(this);
 
-    messages = [];
     connected = false;
     authenticated = false;
-    session = null;
-    userId = null;
+    getSession = () => {return null};
 
-    constructor(config, socketIO, session, userId){
+    constructor(config, socketIO, getSession){
         this.config = config;
         this.socketIO = socketIO;
-        this.session = session;
+        if(typeof(getSession) === 'function'){
+            this.getSession = getSession;
+        }
     }
 
     generateRand() {
@@ -88,10 +88,12 @@ export class ChatClient {
      * Authenticate with the server before the timeout
      *
      * @param {function(err, data)} callback
-     * @param sessionID
+     * @param sessionToken
      */
-    authenticate(callback, sessionID) {
-        this.emit('authenticate', {session_id: sessionID}, callback);
+    authenticate(callback) {
+        let sessionData = this.getSession();
+        console.log(sessionData);
+        this.emit('authenticate', {session_token: sessionData.token, device_id: sessionData.deviceId}, callback);
     }
 
     /**
@@ -108,6 +110,8 @@ export class ChatClient {
             if(hook) this.hooks.add(data._id, hook);
 
             this.socket.emit(type, data);
+
+            return data._id;
         }else{
             console.debug('Not connected to the server');
         }
@@ -122,7 +126,7 @@ export class ChatClient {
              * @param communityID - Community ID that you want to get the rooms for
              */
             list: (callback, communityID) => {
-                client.emit('rooms/list', {community_id: communityID}, callback);
+                return client.emit('rooms/list', {community_id: communityID}, callback);
             },
 
             /**
@@ -134,16 +138,18 @@ export class ChatClient {
              * @param {string} password - password required to join the room
              * @param {Room} room - Room object
              */
-            join: (callback, communityID, roomID, password='', room= new Room(this)) => {
+            join: (callback, communityID, roomID, password='', room= null) => {
                 let data = {community_id: communityID, room_id:roomID};
                 if(password && password.length > 0) data.password = password;
 
-                client.emit(
+                return client.emit(
                     'rooms/join',
                      data,
                     (err, data) => {
                         let userList = [];
+
                         if(!err){
+                            if(!room) room = new Room(this)
                             room.parseJSON(data.room);
                             userList = data.user_list;
                         }
@@ -161,7 +167,7 @@ export class ChatClient {
              */
             leave: (callback, communityID, roomID) => {
                 let data = {community_id: communityID, room_id:roomID};
-                client.emit(
+                return client.emit(
                     'rooms/leave',
                     data,
                     (err, data) => callback(err)
@@ -177,7 +183,7 @@ export class ChatClient {
              */
             online: (callback, communityID, roomID) => {
                 let data = {community_id: communityID, room_id:roomID};
-                client.emit(
+                return client.emit(
                     'rooms/online',
                     data,
                     (err, data, request, client) => {
@@ -199,7 +205,7 @@ export class ChatClient {
              * @param {string} message - Message you wish to send
              */
             send: (callback, communityID='', roomID='', message='') => {
-                client.emit('rooms/message', {community_id: communityID, room_id:roomID, message:message});
+                return client.emit('rooms/message', {community_id: communityID, room_id:roomID, message:message});
             }
         }
     }
