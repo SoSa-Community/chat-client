@@ -91,9 +91,10 @@ export class ChatClient {
      * @param sessionToken
      */
     authenticate(callback) {
-        let sessionData = this.getSession();
-        console.log(sessionData);
-        this.emit('authenticate', {session_token: sessionData.token, device_id: sessionData.deviceId}, callback);
+        this.getSession((sessionData) => {
+            console.log(sessionData);
+            this.emit('authenticate', {session_token: sessionData.token, device_id: sessionData.deviceId}, callback);
+        });
     }
 
     /**
@@ -199,13 +200,22 @@ export class ChatClient {
              * Send a message to the specified room, on success server will emit back to the callback
              * this can be used along side a timer to validate message success
              *
-             * @param {function(err, data, request, socket, client)} callback - runs when the message is successfully sent. This also triggers on error.
+             * @param {function(err, message)} callback - runs when the message is successfully sent. This also triggers on error.
              * @param {string} communityID - Community ID you want to send a message to
              * @param {string} roomID - Room ID you want to send a message to
              * @param {string} message - Message you wish to send
+             * @param {string} uuid - a unique ID if you'd like to trace this message
              */
-            send: (callback, communityID='', roomID='', message='') => {
-                return client.emit('rooms/message', {community_id: communityID, room_id:roomID, message:message});
+            send: (callback, communityID='', roomID='', message='', uuid='') => {
+                if(!uuid) uuid = this.generateId();
+                let id = client.emit('rooms/message', {community_id: communityID, room_id:roomID, message:message, uuid:uuid}, (err, message) => {
+                    let messageInstance = null;
+                    if(message !== null && typeof(message) === 'object'){
+                        message._id = id;
+                        messageInstance = Message.fromJSON(message);
+                    }
+                    callback(err, messageInstance);
+                });
             }
         }
     }
