@@ -1,4 +1,4 @@
-import {Listeners, ResponseHooks, Middleware, MessageParsers, Room} from './module.js';
+import {Listeners, ResponseHooks, Middleware, MessageParsers, Message, Room} from './module.js';
 
 /**
  * Object.prototype.forEach() polyfill
