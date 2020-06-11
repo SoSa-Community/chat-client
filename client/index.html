@@ -15,7 +15,13 @@
                 client = new ChatClient(
                     {host: CONFIG.host, api_key: CONFIG.api_key},
                     io,
-                    (callback) => (callback({ token: sessionToken, userId: 1, deviceId: deviceId}))
+                    (callback) => (
+                        callback(
+                            sessionToken,
+                            deviceId,
+                            false
+                        )
+                    )
                 );
 
                 let middleware = client.middleware;

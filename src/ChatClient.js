@@ -91,9 +91,14 @@ export class ChatClient {
      * @param sessionToken
      */
     authenticate(callback) {
-        this.getSession((sessionData) => {
-            console.log(sessionData);
-            this.emit('authenticate', {session_token: sessionData.token, device_id: sessionData.deviceId}, callback);
+        this.getSession((sessionToken, deviceId, isBot) => {
+            let payload = {session_token: sessionToken};
+            if(isBot){
+                payload.bot_id = deviceId;
+            }else{
+                payload.device_id = deviceId;
+            }
+            this.emit('authenticate',  payload, callback);
         });
     }
 
