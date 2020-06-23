@@ -15,13 +15,24 @@
                 client = new ChatClient(
                     {host: CONFIG.host, api_key: CONFIG.api_key},
                     io,
-                    (callback) => (
-                        callback(
-                            sessionToken,
-                            deviceId,
-                            false
-                        )
-                    )
+                    {
+                        get: (callback) => (
+                                callback(
+                                    sessionToken,
+                                    deviceId,
+                                    false
+                                )
+                        ),
+                        reauth: (callback) => {
+                            let reauthError = null;
+                            // do some reauthentication stuff here
+                            callback(reauthError);
+                        },
+                        authFailed: () => {
+                            console.error('Authentication failed');
+                        }
+
+                    }
                 );
 
                 let middleware = client.middleware;
@@ -32,7 +43,7 @@
                         console.log('receive_message', message);
                         return message;
                     },
-                    'after_authenticated': (authData, client) => {
+                    'authentication_successful': (authData, client) => {
                         console.log('after_authenticated', authData);
                         return authData;
                     },

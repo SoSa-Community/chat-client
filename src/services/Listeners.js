@@ -37,36 +37,35 @@ export class Listeners {
 
     connect() {
         console.debug('Connected');
-
         let client = this.client;
 
         client.connected = true;
         client.middleware.trigger('connected', {}, (data) => {
-
             client.middleware.trigger('before_authenticate', data, (data) => {
-
-                client.authenticate((err, sessionData) => {
-                    data.err = err;
-                    data.sessionData = sessionData;
-
-                    client.middleware.trigger(
-                        'after_authenticate',
-                         data,
-                        (data) => {
-
-                            if (!data.err) {
-                                client.authenticated = true;
-                                client.middleware.trigger('after_authenticated', data, () => {
-                                        console.debug('Authentication successful');
-                                });
-                            }else{
-                                console.debug(data.err);
-                            }
-                        }
-                    );
-                }, data.session_token);
-
+                this.handleAuthentication();
             });
+        });
+    }
+
+    handleAuthentication(){
+        let client = this.client;
+
+        client.authenticate((err, sessionData) => {
+            let data = {err, sessionData};
+
+            client.middleware.trigger( 'after_authenticate', data, (data) => {
+                    if (!data.err) {
+                        client.authenticated = true;
+                        client.middleware.trigger('authentication_successful', data, () => {
+                            console.debug('Authentication successful');
+                        });
+                    }else{
+                        client.middleware.trigger('authentication_failed', data, () => {
+                            console.debug('Authentication successful');
+                        });
+                    }
+                }
+            );
         });
     }
 

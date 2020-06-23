@@ -39,13 +39,17 @@ export class ChatClient {
 
     connected = false;
     authenticated = false;
-    getSession = () => {return null};
+    sessionHandler = {
+        get: (callback) => {throw new Error('Session handler not implemented');},
+        reauth: (callback) => {throw new Error('Session handler not implemented');},
+        authFailed: () => {throw new Error('Session handler not implemented');}
+    };
 
-    constructor(config, socketIO, getSession){
+    constructor(config, socketIO, sessionHandler){
         this.config = config;
         this.socketIO = socketIO;
-        if(typeof(getSession) === 'function'){
-            this.getSession = getSession;
+        if(typeof(sessionHandler) === 'object'){
+            this.sessionHandler = sessionHandler;
         }
     }
 
@@ -88,17 +92,44 @@ export class ChatClient {
      * Authenticate with the server before the timeout
      *
      * @param {function(err, data)} callback
-     * @param sessionToken
+     * @param reauthAttempted
      */
-    authenticate(callback) {
-        this.getSession((sessionToken, deviceId, isBot) => {
+    authenticate(callback, reauthAttempted) {
+        this.sessionHandler.get((sessionToken, deviceId, isBot) => {
+
             let payload = {session_token: sessionToken};
+
             if(isBot){
                 payload.bot_id = deviceId;
             }else{
                 payload.device_id = deviceId;
             }
-            this.emit('authenticate',  payload, callback);
+
+            this.emit('authenticate',  payload, (authError, data) => {
+                if(!reauthAttempted && authError && typeof(this.sessionHandler.reauth) === "function"){
+                    this.sessionHandler.reauth((reauthError) => {
+                        if(!reauthError){
+                            this.authenticate(callback, true);
+                        }else{
+                            try{
+                                this.sessionHandler.authFailed();
+                            }catch(e){
+                                console.debug('Auth failed callback failed', e);
+                            }
+                            callback(authError, data);
+                        }
+                    });
+                }else{
+                    if(authError){
+                        try{
+                            this.sessionHandler.authFailed();
+                        }catch(e){
+                            console.debug('Auth failed callback failed', e);
+                        }
+                    }
+                    callback(authError, data);
+                }
+            });
         });
     }
 
@@ -150,7 +181,7 @@ export class ChatClient {
 
                 return client.emit(
                     'rooms/join',
-                     data,
+                    data,
                     (err, data) => {
                         let userList = [];
 
