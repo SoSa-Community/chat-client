@@ -61,7 +61,7 @@ export class Listeners {
                         });
                     }else{
                         client.middleware.trigger('authentication_failed', data, () => {
-                            console.debug('Authentication successful');
+                            console.debug('Authentication failed');
                         });
                     }
                 }

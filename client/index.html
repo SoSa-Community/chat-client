@@ -3,31 +3,60 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
         <script src="/config.js"></script>
 
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
-        <script>
-            let client;
-        </script>
-        <script type="module">
-                let sessionToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImMzMWJjYzUyMTgwNzU0ZGNiODljOTNhZjNlYjA5YjdjNGUyMDEzMDY1OGEwNzE4MGVkNTBhZDVhZmIwMTdmNDE5NzFmNzdjZjgwODY3NzQzNGM3MmNiNTM1MzEzNGM1YWFlYjEiLCJyZWZyZXNoX3Rva2VuIjoiZTcxNmZmNWM3M2EwZjcxY2Y3ODU3YzAxYTE1ODA0Y2RjYjIxMGY0ZmJlMWNmYmYxOGQ3MjFkNTcxMDlkM2EyMzFkNjA5YmVkYTg1NTYzYjI2ZjQ1NmUxMmJmODM5ZjhlYzg3YyJ9.HMfirEr_SKruaIHETeOCXdYJwHdLbgpJpk8MJ09PkX4";
-                let deviceId = "3ed8d38bfdd4850c5eb02865d588c1b77c75da573a4350a8b4d6308f692b6f9a";
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js" integrity="sha512-nOQuvD9nKirvxDdvQ9OMqe2dgapbPB7vYAMrzJihw5m+aNcf0dX53m6YxM4LgA9u8e9eg9QX+/+mPu8kCNpV2A==" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/hmac-sha256.js" integrity="sha512-E1giIk749hoUzLT1xo7iL+AqcngJbpqUoo8fwdu55DCwH/Fznsn6RzDitZqDLcyZuj013DdG98lN4re6rhLtTg==" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/enc-base64.min.js" integrity="sha512-KdYlUmn5GJL1N0dOEXHouJ7i4w2ARpP5IB421hWT09zzvBdxv5GiWaSSiAsx/iYZBO1XHm3hzEN3/PJCNxdJNg==" crossorigin="anonymous"></script>
 
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+        <script type="module">
                 import { ChatClient } from '/module.js';
+                window.SoSa = {ChatClient};
+        </script>
+    </head>
+    <body>
+
+
+
+        <script type="text/javascript">
+            let client;
+            window.onload = function(){
+
+                const {ChatClient} = window.SoSa;
+
+                function generateJWT(data, secret){
+
+                    function base64url(source) {
+                        // Encode in classical base64
+                        let encodedSource = CryptoJS.enc.Base64.stringify(source);
+                        encodedSource = encodedSource.replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+                        return encodedSource;
+                    }
+
+                    const encodedHeader = base64url(CryptoJS.enc.Utf8.parse(JSON.stringify({"alg": "HS256","typ": "JWT"})));
+                    const encodedData = base64url(CryptoJS.enc.Utf8.parse(JSON.stringify(data)));
+                    return `${encodedHeader}.${encodedData}.${base64url(CryptoJS.HmacSHA256(`${encodedHeader}.${encodedData}`, secret))}`;
+                }
+
+
+                const sessionId = '4ddf2944f966868acac14051324922b0c3a66cacb0dee4915b026a18569d1efadfbbb6e1777dc847ffc31954f5fc071b9aaa';
+                const refreshToken = 'fe767208014b00ac156cd797e5d230f67a457e8ce0f7c88236ecd466d3f09cd0f0c1b1cb1e1a42d3096d7ff759aa99535d59';
+                const deviceId = "864f082215353e4de3a234237c22f0af651591437dd48c90490ce05786e31617";
+                const secret = '67abd763ec31c158f3f002936770adcf';
+
                 client = new ChatClient(
                     {host: CONFIG.host, api_key: CONFIG.api_key},
                     io,
                     {
                         get: (callback) => (
-                                callback(
-                                    sessionToken,
-                                    deviceId,
-                                    false
-                                )
+                            callback(
+                                generateJWT({
+                                    "id": sessionId,
+                                    "refresh_token": refreshToken
+                                }, secret),
+                                deviceId,
+                                false
+                            )
                         ),
-                        reauth: (callback) => {
-                            let reauthError = null;
-                            // do some reauthentication stuff here
-                            callback(reauthError);
-                        },
                         authFailed: () => {
                             console.error('Authentication failed');
                         }
@@ -66,14 +95,9 @@
                 });
 
                 client.connect();
+            };
 
         </script>
-    </head>
-    <body>
-
-
-
-
     </body>
 
 

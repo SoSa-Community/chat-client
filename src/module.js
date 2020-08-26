@@ -1,8 +1,8 @@
 import { SoSaError } from './entities/SoSaError.js';
-import { Listeners } from './services/Listeners.js';
-import { ResponseHooks } from './services/ResponseHooks.js';
-import { Middleware } from './services/Middleware.js';
-import { MessageParsers } from './services/MessageParsers.js';
+import { Listeners } from './core/Listeners.js';
+import { ResponseHooks } from './core/ResponseHooks.js';
+import { Middleware } from './core/Middleware.js';
+import { MessageParsers } from './core/MessageParsers.js';
 import { MessageParser } from './entities/MessageParser.js';
 import { Message } from './entities/Message.js';
 import { Room } from './entities/Room.js';

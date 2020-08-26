@@ -1,5 +1,5 @@
 import {Listeners, ResponseHooks, Middleware, MessageParsers, Message, Room} from './module.js';
-
+import {GeneralService} from './services/General.js';
 /**
  * Object.prototype.forEach() polyfill
  * Refactored from https://gomakethings.com/looping-through-objects-with-es6/
@@ -36,6 +36,10 @@ export class ChatClient {
     hooks = new ResponseHooks(this);
     middleware = new Middleware(this);
     parsers = new MessageParsers(this);
+
+    services = {
+        'general': new GeneralService(this)
+    };
 
     connected = false;
     authenticated = false;
@@ -207,7 +211,7 @@ export class ChatClient {
                 return client.emit(
                     'rooms/leave',
                     data,
-                    (err, data) => callback(err)
+                    (err, data) => callback(err, data)
                 );
             },
 
