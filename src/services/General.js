@@ -1,14 +1,14 @@
-import {ChatClient} from '../module.js';
-
+import {Client} from "../Client.js";
 
 export class GeneralService {
 
-    /** @type {ChatClient} */
+    /** @type {Client} */
     client = null;
 
     constructor(client) {
         this.client = client;
     }
+
 
     prepareUpload(callback, communityID) {
         return client.emit(

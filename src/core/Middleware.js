@@ -1,14 +1,14 @@
-import {ChatClient} from '../module.js';
+import { Client } from "../Client.js";
 
 export class Middleware {
 
-    client = ChatClient;
+    client = Client;
     middleware = [];
 
     /**
      * Creates a new Listeners Object
      *
-     * @param {ChatClient} client - Listeners class initiating the class
+     * @param {Client} client - Listeners class initiating the class
      */
     constructor(client) {
         this.client = client;
@@ -24,15 +24,13 @@ export class Middleware {
      */
     add(event, middleware, signature=''){
         let add = (event, middleware, signature) => {
-            console.debug('Adding middleware to event:', event, signature);
-
+            if(!signature || signature.length === 0) signature = this.client.generateUUID();
             if(!this.middleware[event]) this.middleware[event] = {};
-
-            if(!signature || signature.length === 0) signature = this.client.generateId();
-
             this.middleware[event][signature] = middleware;
         };
-
+    
+        console.info('Client::Middleware::add', event, signature);
+        
         if(typeof(event) === 'string'){
             add(event, middleware, signature);
         }else{
@@ -49,20 +47,20 @@ export class Middleware {
      *
      * @param {string} event - event triggered
      * @param {object} data - sent from the triggering command
-     * @param {function(data, socket, client)} callback - Callback after all middleware has run
+     * @param {function(data, client)} callback - Callback after all middleware has run
      */
-    trigger(event, data, callback){
-
-        if(event && this.middleware[event]){
-            let callbacks = this.middleware[event];
-            callbacks.forEach((middleware) => {
-                try{
-                    data = middleware(data, this.client, event);
-                }catch(e){
-                    console.debug('Middleware failed', e);
-                }
-            });
-        }
-        callback(data, this.client);
+    trigger(event, data){
+        return new Promise((resolve, reject) => {
+            if(event && this.middleware[event]){
+                let callbacks = Object.values(this.middleware[event]).map((middleware) =>
+                    new Promise((resolve1, reject1) => {
+                        middleware(data, this.client, event);
+                        resolve1();
+                    })
+                );
+                Promise.all(callbacks);
+            }
+            resolve(data);
+        });
     }
 }
