@@ -28,7 +28,7 @@ export class RequestProvider {
                     .then(() => {
                         let payload = {};
                         if(forSocket){
-                            payload = {id: _session.id, refresh_token: _session.refreshToken};
+                            payload = {id: _session.id, refresh_token: _session.refresh_token};
                         }else{
                             payload = {device_id: _device.id};
                         }
@@ -70,6 +70,8 @@ export class RequestProvider {
                     let parsedExpiry = new Date(Date.parse(expiry.replace(/-/g, '/')));
                     if(isNaN(parsedExpiry)){parsedExpiry = null;}
                     
+                    console.debug(parsedExpiry);
+                    
                     if(parsedExpiry !== null && parsedExpiry.getTime() < (new Date()).getUTCMilliseconds())    request.headers['refresh-token'] = refresh_token;
                 }
             }
@@ -96,13 +98,12 @@ export class RequestProvider {
                 return fetch(endpoint, request)
                     .then((response) => {
                         clearTimeout(timeoutTimer);
-                        return response.json();
-                    })
-                    .then((json) => {
+                        let json = response.json();
+                        
                         console.info('Client::RequestProvider::Request::Response', json);
                         if(json && session && json.session) session.parseJSON(json.session);
                         resolve(json);
-                    });
+                    })
             })
         });
     }

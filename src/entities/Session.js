@@ -2,7 +2,7 @@ export class Session {
 
     id = '';
     expiry = '';
-    refreshToken = '';
+    refresh_token = '';
     username = '';
     nickname = '';
 
