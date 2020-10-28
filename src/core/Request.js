@@ -1,3 +1,5 @@
+import {SoSaError} from "../entities/SoSaError";
+
 export class Request {
 
 	namespace = '';
@@ -22,31 +24,39 @@ export class Request {
 	}
 
 	run = () => {
-	    console.debug('Request', this);
 	    const { provider: { client : { sessionHandler: { getSession, updateSession } }, request: handleRequest } } = this;
 		
-	    return handleRequest(this).then((json) => {
-			this.response = json;
-			
-			if(json && json.response){
-                const { response } = json;
-                const { session, user } = response || {};
-                const { username, nickname } = user || {};
+	    return handleRequest(this)
+            .then((json) => {
+                this.response = json;
                 
-                if(session || username || nickname){
-                    return getSession().then(sessionInstance => {
-                        
-                        if(session) sessionInstance.parseJSON(session);
-                        
-                        if(username) sessionInstance.username = username;
-                        if(nickname) sessionInstance.nickname = nickname;
-                        
-                        return updateSession(sessionInstance).then(() => json).finally(() => json);
-                    });
+                if(json && json.response){
+                    const { response } = json;
+                    const { session, user } = response || {};
+                    const { username, nickname } = user || {};
+                    
+                    if(session || username || nickname){
+                        return getSession().then(sessionInstance => {
+                            
+                            if(session) sessionInstance.parseJSON(session);
+                            
+                            if(username) sessionInstance.username = username;
+                            if(nickname) sessionInstance.nickname = nickname;
+                            
+                            return updateSession(sessionInstance).then(() => json).finally(() => json);
+                        });
+                    }
                 }
-            }
-            return json;
-		});
+                return json;
+		    }).then(json => {
+                if(json){
+                    let errors = [];
+                    if(Array.isArray(json.errors) && json.errors.length) errors = json.errors;
+                    else if(json.error) errors.push(errors);
+                    if(errors.length) throw errors.map(error => SoSaError.fromJSON(error));
+                }
+                return json;
+            });
 	}
 
 }

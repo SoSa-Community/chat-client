@@ -19,9 +19,6 @@ export class AuthService {
         return new Request(this.provider, namespace, call, data, call === 'validate' ? 'GET' : 'POST', true)
             .run()
             .then((json) => {
-                const { error } = json;
-                if(error) throw new SoSaError(error.message);
-                
                 const { response: { device_id } } = json;
                 if(typeof(device_id) === 'string'){
                     return getDevice().then(deviceInstance => {
@@ -39,35 +36,38 @@ export class AuthService {
 	};
 
 	register = (username, password, email) => {
-        if(!email) throw new SoSaError('provide_email');
-        return this.handleLoginRegister(username, password, email);
+        return new Promise((resolve, reject) => {
+            if (!email) throw new SoSaError('provide_email');
+            return resolve(this.handleLoginRegister(username, password, email));
+        });
 	};
 
 	handleLoginRegister = (username, password, email) => {
-        
-        if(!username) throw new SoSaError('provide_username');
-        if(!password) throw new SoSaError('provide_password');
-        
         const { client : { sessionHandler: { getDevice } } } = this;
         
-        return getDevice().then(deviceInstance => {
-            let call = 'login';
+        return new Promise((resolve, reject) => {
+            if(!username) throw new SoSaError('provide_username');
+            if(!password) throw new SoSaError('provide_password');
             
-            let data = {
-                username: username,
-                password: password,
-                device_secret: deviceInstance.secret,
-                device_name: deviceInstance.name,
-                device_platform: deviceInstance.platform
-            };
-    
-            if(email){
-                call = 'register';
-                data.email = email;
-                data.login = true;
-            }
-            
-            return this.handleAuthRequest('', call, data);
+            getDevice().then(deviceInstance => {
+                let call = 'login';
+                
+                let data = {
+                    username: username,
+                    password: password,
+                    device_secret: deviceInstance.secret,
+                    device_name: deviceInstance.name,
+                    device_platform: deviceInstance.platform
+                };
+                
+                if(email){
+                    call = 'register';
+                    data.email = email;
+                    data.login = true;
+                }
+                
+                resolve(this.handleAuthRequest('', call, data));
+            });
         });
 	};
 
@@ -76,8 +76,7 @@ export class AuthService {
 	    let data = {device_id: deviceId};
 	    
         return generateJWT(data).then(token => {
-            data.token = token;
-            return this.handleAuthRequest('device', 'login', data);
+            return this.handleAuthRequest('device', 'login', {token, ...data});
         })
 	};
     
@@ -90,11 +89,8 @@ export class AuthService {
         
         return new Request(this.provider, '', 'logout', false, 'POST', true)
             .run()
-            .then((json) => {
-                if(json.error) throw new SoSaError(json.error.message);
-                return updateSession(null).then(() => true);
-            });
-    }
+            .then(() => updateSession(null).then(() => true));
+    };
 
 	createPreauth = () => {
         const { client : { sessionHandler: { getDevice } } } = this;
@@ -107,12 +103,7 @@ export class AuthService {
             };
             return new Request(this.provider, 'preauth', 'create', data)
                 .run()
-                .then(json => {
-                    const {error} = json;
-                    if(error) throw new SoSaError(error.message);
-                    
-                    return json?.response;
-                });
+                .then(({response}) => response);
         });
 	};
     
@@ -122,8 +113,13 @@ export class AuthService {
         return generateJWT({link_token: linkToken}).then(token => {
             return new Request(this.provider, 'login', 'link', { preauth_id: preauthId, token: token })
                 .run()
-                .then(({response})=> response);
+                .then(({response}) => response);
         });
+    };
+    
+    getPreauthURI = (type, network, preauthId) => {
+        const { provider: { config: { host } } } = this;
+        return `${host}/${network}/${type}?app=1&preauth=${preauthId}`
     };
 
 	confirmWelcome = (username, email) => {
@@ -131,9 +127,6 @@ export class AuthService {
         return new Request(this.provider, 'login', 'welcome', {username, email}, 'POST', true)
             .run()
             .then(json => {
-                if(Array.isArray(json?.errors)){
-                    throw json?.errors.map((error) => SoSaError.fromJSON(error));
-                }
                 return json?.response;
             });
 	}
