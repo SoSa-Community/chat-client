@@ -27,10 +27,15 @@ export class RequestProvider {
                     .catch((error) => console.debug(error))
                     .then(() => {
                         let payload = {};
-                        if(forSocket){
+                        const { id, isBot, botId } = _device;
+                        
+                        if(isBot){
+                            payload = {id: botId};
+                        }
+                        else if(forSocket){
                             payload = {id: _session.id, refresh_token: _session.refresh_token};
                         }else{
-                            payload = {device_id: _device.id};
+                            payload = {device_id: id};
                         }
                         return generateJWT(payload);
                     })
@@ -70,8 +75,6 @@ export class RequestProvider {
                     let parsedExpiry = new Date(Date.parse(expiry.replace(/-/g, '/')));
                     if(isNaN(parsedExpiry)){parsedExpiry = null;}
                     
-                    console.debug(parsedExpiry);
-                    
                     if(parsedExpiry !== null && parsedExpiry.getTime() < (new Date()).getUTCMilliseconds())    request.headers['refresh-token'] = refresh_token;
                 }
             }
@@ -91,18 +94,25 @@ export class RequestProvider {
             const timeout = 10000;
     
             console.info('Client::RequestProvider::Request', uri, request);
-
             return new Promise((resolve, reject) => {
                 let timeoutTimer = setTimeout(() => reject('Network Timed Out'), timeout);
                 
                 return fetch(endpoint, request)
                     .then((response) => {
                         clearTimeout(timeoutTimer);
-                        let json = response.json();
-                        
+                        return response.json();
+                    }).then((json) => {
                         console.info('Client::RequestProvider::Request::Response', json);
-                        if(json && session && json.session) session.parseJSON(json.session);
-                        resolve(json);
+                        if(json && json.session) {
+                            const { client: { sessionHandler } } = this;
+                            session.parseJSON(json.session);
+                            
+                            sessionHandler.updateSession(session).then(() => {
+                                resolve(json);
+                            })
+                        }else{
+                            resolve(json);
+                        }
                     })
             })
         });

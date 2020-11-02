@@ -15,6 +15,20 @@ export class ChatService {
     constructor(client) {
         this.client = client;
         this.provider = client.getProvider('chat');
+        
+        const { client: { middleware } } = this;
+        middleware.clear('chat');
+        middleware.add('chat',{
+            'event': ( packet ) => {
+                const { type, data } = packet;
+                return new Promise((resolve, reject) => {
+                    if (type === 'chat/message') {
+                        packet.data = Message.fromJSON(data);
+                    }
+                    resolve(packet);
+                });
+            }
+        });
     }
 
     setupListeners() {
@@ -36,7 +50,9 @@ export class ChatService {
              * @param communityID - Community ID that you want to get the rooms for
              */
             list: (communityID) => {
-                return new Request(this.provider, 'rooms', 'list', {community_id: communityID}).run().then(({data}) => data);
+                return new Request(this.provider, 'rooms', 'list', {community_id: communityID})
+                    .run()
+                    .then(({data: { rooms } }) => rooms.map((room) => Room.fromJSON(this.client, room)));
             },
 
             /**

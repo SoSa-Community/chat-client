@@ -1,4 +1,4 @@
-import {SoSaError} from "../entities/SoSaError";
+import {SoSaError} from "../entities/SoSaError.js";
 
 export class Request {
 

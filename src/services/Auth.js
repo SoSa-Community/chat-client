@@ -126,8 +126,6 @@ export class AuthService {
         
         return new Request(this.provider, 'login', 'welcome', {username, email}, 'POST', true)
             .run()
-            .then(json => {
-                return json?.response;
-            });
+            .then(({response}) => response);
 	}
 }

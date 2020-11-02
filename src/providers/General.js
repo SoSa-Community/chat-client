@@ -15,7 +15,7 @@ export class GeneralProvider extends RequestProvider {
     
     constructor(client, config) {
         super(client, config);
-        this.connect();
+        //this.connect();
     }
     
     request = (request) => {
@@ -71,15 +71,16 @@ export class GeneralProvider extends RequestProvider {
                     
                     listeners.add( {
                         'event': (packet) => {
-                            const { client: { middleware }, hooks } = this;
-                            const { request: {_id: id} } = packet;
-                            const { type } = packet;
-        
-                            if(id) hooks.trigger(packet);
+                            console.info('Client::GeneralProvider::event', packet);
                             
-                            return middleware.trigger(`event`, packet).then((packet) => {
-                                console.debug('event', packet);
-                            });
+                            const { client: { middleware }, hooks } = this;
+                            const { request } = packet;
+                            if(request){
+                                const { _id } = request;
+                                if(_id) hooks.trigger(packet);
+                            }
+                            
+                            return middleware.trigger(`event`, packet);
                         },
                         'connect': (socket) => {
                             const { client: { middleware } } = this;
@@ -155,11 +156,13 @@ export class GeneralProvider extends RequestProvider {
             .then(({device, session, jwt}) => {
                 console.info('Client::GeneralProvider::authenticate', device, session, jwt);
                 
-                if(!device || !session || !jwt) throw new SoSaError('invalid_session');
+                const { isBot } = device;
+                
+                if(!device || (!session && !isBot) || !jwt) throw new SoSaError('invalid_session');
 
                 let payload = {session_token: jwt};
 
-                if(device.isBot) payload.bot_id = device.id;
+                if(isBot) payload.bot_id = device.id;
                 else{
                     payload.device_id = device.id;
                 }
