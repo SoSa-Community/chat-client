@@ -24,7 +24,6 @@ if (!Object.prototype.forEach) {
         },
         writable: true
     });
-
 }
 
 export class Client {
@@ -35,6 +34,7 @@ export class Client {
     };
 
     socketIO = null;
+    xmlParser = null;
 
     middleware = new Middleware(this);
 
@@ -53,10 +53,11 @@ export class Client {
         authFailed: () => { throw new Error('Session handler not implemented') }
     };
 
-    constructor(config, socketIO, sessionHandler){
+    constructor(config, socketIO, xmlParser, sessionHandler){
 
         this.config = config;
         this.socketIO = socketIO;
+        this.xmlParser = xmlParser;
 
         if(typeof(sessionHandler) === 'object'){
             this.sessionHandler = sessionHandler;
