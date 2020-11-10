@@ -1,14 +1,14 @@
-import {ChatClient} from '../module.js';
+import { Client } from "../Client.js";
 
 export class Middleware {
 
-    client = ChatClient;
+    client = Client;
     middleware = [];
 
     /**
      * Creates a new Listeners Object
      *
-     * @param {ChatClient} client - Listeners class initiating the class
+     * @param {Client} client - Listeners class initiating the class
      */
     constructor(client) {
         this.client = client;
@@ -18,21 +18,24 @@ export class Middleware {
     /***
      * Adds middleware to a specified event
      *
+     * @param namespace
      * @param {string|object} event - What event will the middleware trigger for
      * @param {function(data, client, event)|undefined} middleware - Middleware code to run
      * @param {string} signature - Not required, but useful if you need to remove this middleware independently
      */
-    add(event, middleware, signature=''){
+    add(namespace='', event, middleware, signature=''){
+        if(!namespace.length) namespace = 'general';
+        
         let add = (event, middleware, signature) => {
-            console.debug('Adding middleware to event:', event, signature);
-
-            if(!this.middleware[event]) this.middleware[event] = {};
-
-            if(!signature || signature.length === 0) signature = this.client.generateId();
-
-            this.middleware[event][signature] = middleware;
+            if(!signature || signature.length === 0) signature = this.client.generateUUID();
+            
+            if(!this.middleware[namespace]) this.middleware[namespace] = {};
+            if(!this.middleware[namespace][event]) this.middleware[namespace][event] = {};
+            this.middleware[namespace][event][signature] = middleware;
         };
-
+    
+        console.info('Client::Middleware::add', event, signature);
+        
         if(typeof(event) === 'string'){
             add(event, middleware, signature);
         }else{
@@ -42,27 +45,37 @@ export class Middleware {
         }
     }
 
-    clear(){this.middleware = [];}
+    clear(namespace){
+        this.middleware[namespace] = [];
+    }
 
     /**
      * Searches
      *
      * @param {string} event - event triggered
      * @param {object} data - sent from the triggering command
-     * @param {function(data, socket, client)} callback - Callback after all middleware has run
+     * @param {function(data, client)} callback - Callback after all middleware has run
      */
-    trigger(event, data, callback){
-
-        if(event && this.middleware[event]){
-            let callbacks = this.middleware[event];
-            callbacks.forEach((middleware) => {
-                try{
-                    data = middleware(data, this.client, event);
-                }catch(e){
-                    console.debug('Middleware failed', e);
+    trigger(event, data){
+        return new Promise((resolve, reject) => {
+            if(event){
+                let callbacks = [];
+                for(const namespace in this.middleware){
+                    if(this.middleware[namespace].hasOwnProperty(event)){
+                        callbacks = [...callbacks, ...Object.values(this.middleware[namespace][event]).map((middleware) =>
+                            new Promise((resolve1, reject1) => {
+                                middleware(data, this.client, event);
+                                resolve1();
+                            }).catch((error) => {
+                                console.debug('Client::Middleware::trigger::error', event, error);
+                            })
+                        )];
+                    }
                 }
-            });
-        }
-        callback(data, this.client);
+                Promise.all(callbacks).then(() => resolve(data));
+            }else{
+                resolve(data);
+            }
+        });
     }
 }

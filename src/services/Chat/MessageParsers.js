@@ -1,18 +1,18 @@
-import {ChatClient} from '../module.js';
+import {Client} from "../../Client.js";
 
 export class MessageParsers {
 
-    client = ChatClient;
+    client = Client;
     parsers = [];
     longRunners = [];
 
     /**
      * Creates a new MessageParsers Object
      *
-     * @param {ChatClient} client - Listeners class initiating the class
+     * @param {ChatService} client - Listeners class initiating the class
      */
-    constructor(client) {
-        this.client = client;
+    constructor(chatService) {
+        this.client = chatService.client;
         this.clear();
     }
 

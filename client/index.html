@@ -9,8 +9,10 @@
 
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
         <script type="module">
-                import { ChatClient } from '/module.js';
-                window.SoSa = {ChatClient};
+                import {Client} from "../Client.js";
+                import {Device} from "../entities/Device.js";
+                import {Session} from "../entities/Session.js";
+                window.SoSa = {Client, Device, Session};
         </script>
     </head>
     <body>
@@ -21,7 +23,7 @@
             let client;
             window.onload = function(){
 
-                const {ChatClient} = window.SoSa;
+                const {Client, Device, Session} = window.SoSa;
 
                 function generateJWT(data, secret){
 
@@ -37,30 +39,51 @@
                     return `${encodedHeader}.${encodedData}.${base64url(CryptoJS.HmacSHA256(`${encodedHeader}.${encodedData}`, secret))}`;
                 }
 
+                let device = Device.fromJSON({
+                    id: '864f082215353e4de3a234237c22f0af651591437dd48c90490ce05786e31617',
+                    name: 'Some Device',
+                    secret: '67abd763ec31c158f3f002936770adcf',
+                });
 
-                const sessionId = '4ddf2944f966868acac14051324922b0c3a66cacb0dee4915b026a18569d1efadfbbb6e1777dc847ffc31954f5fc071b9aaa';
-                const refreshToken = 'fe767208014b00ac156cd797e5d230f67a457e8ce0f7c88236ecd466d3f09cd0f0c1b1cb1e1a42d3096d7ff759aa99535d59';
-                const deviceId = "864f082215353e4de3a234237c22f0af651591437dd48c90490ce05786e31617";
-                const secret = '67abd763ec31c158f3f002936770adcf';
+                let session = Session.fromJSON({
+                    id: '4ddf2944f966868acac14051324922b0c3a66cacb0dee4915b026a18569d1efadfbbb6e1777dc847ffc31954f5fc071b9aaa',
+                    refresh_token: 'fe767208014b00ac156cd797e5d230f67a457e8ce0f7c88236ecd466d3f09cd0f0c1b1cb1e1a42d3096d7ff759aa99535d59'
+                });
 
-                client = new ChatClient(
-                    {host: CONFIG.host, api_key: CONFIG.api_key},
+                client = new Client(
+                    CONFIG,
                     io,
                     {
-                        get: (callback) => (
-                            callback(
-                                generateJWT({
-                                    "id": sessionId,
-                                    "refresh_token": refreshToken
-                                }, secret),
-                                deviceId,
-                                false
-                            )
-                        ),
+                        getDevice: () => {
+                            return new Promise((resolve, reject) => {
+                                resolve(device);
+                            })
+                        },
+						updateDevice: (_device) => {
+                            return new Promise((resolve, reject) => {
+                                device = _device;
+                                resolve(_device);
+                            })
+						},
+                        getSession: () => {
+                            return new Promise((resolve, reject) => {
+                                resolve(session);
+                            })
+                        },
+                        updateSession: (_session) => {
+                            return new Promise((resolve, reject) => {
+                                session = _session;
+                                resolve(_session);
+                            })
+                        },
+                        generateJWT: (data) => {
+                            return new Promise((resolve, reject) => {
+                                resolve(generateJWT(data, device.secret));
+                            });
+                        },
                         authFailed: () => {
                             console.error('Authentication failed');
                         }
-
                     }
                 );
 
@@ -68,33 +91,40 @@
 
                 middleware.clear();
                 middleware.add({
-                    'receive_message': (message, client) => {
+                    'receive_message': (message) => {
                         console.log('receive_message', message);
                         return message;
                     },
-                    'authentication_successful': (authData, client) => {
-                        console.log('after_authenticated', authData);
-                        return authData;
+                    'authentication_successful': ({data, request}) => {
+                        console.log('after_authenticated', data, request);
+                    },
+                    'authentication_failed': (error) => {
+                        console.log('after_authenticated', error);
                     },
                     'disconnected': (message, client) => {
                         console.log('disconnected', message);
-                        return message;
                     },
                     'error': (message, client) => {
                         console.log('error', message);
-                        return message;
                     },
                     'rooms/join': (userData) => {
                         console.log('rooms/join', userData);
-                        return userData;
                     },
                     'rooms/left': (userData) => {
                         console.log('rooms/left', userData);
-                        return userData;
                     }
                 });
 
-                client.connect();
+                middleware.add({
+                    'authentication_successful': (authData) => {
+                        console.log('after_authenticated2', authData);
+                    },
+                    'authentication_failed': (error) => {
+                        console.log('after_authenticated2', error);
+                    },
+                });
+
+                client.services.chat.rooms.list('sosa');
             };
 
         </script>

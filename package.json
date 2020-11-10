@@ -1,9 +1,9 @@
 {
-  "name": "@sosa/chat-client",
-  "type" : "module",
+  "name": "sosa-chat-client",
+  "type": "module",
   "version": "0.0.9",
+  "main": "index.js",
   "description": "SoSa Chat Client Library",
-  "main": "src/module.js",
   "directories": {
     "test": "test"
   },
@@ -26,5 +26,9 @@
   "bugs": {
     "url": "https://github.com/SoSa-Community/chat-client/issues"
   },
-  "homepage": "https://github.com/SoSa-Community/chat-client#readme"
+  "homepage": "https://github.com/SoSa-Community/chat-client#readme",
+  "devDependencies": {
+    "webpack": "^4.44.2",
+    "webpack-cli": "^3.3.12"
+  }
 }
