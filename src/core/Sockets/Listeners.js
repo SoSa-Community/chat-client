@@ -30,4 +30,10 @@ export class Listeners {
             add(event, handler);
         }
     }
+    
+    clear = () => {
+        const { provider : { socket } } = this;
+        console.info('Client::Listeners::clear');
+        socket.removeAllListeners()
+    }
 }

@@ -60,13 +60,22 @@ export class GeneralProvider extends RequestProvider {
                     const { client: { socketIO }, config: { host, api_key } } = this;
                     console.info('Client::GeneralProvider::connect', this.config);
                     
-                    
-                    
                     this.socket = socketIO(host, {
                         forceNew: true,
                         transports: ['websocket'],
                         pingTimeout: 30000,
                         query: { api_key }
+                    });
+    
+                    const { client: { middleware } } = this;
+                    middleware.clear('general_provider');
+                    middleware.add('general_provider',{
+                        'logout': () => {
+                            return new Promise((resolve) => {
+                                this.disconnect();
+                                resolve();
+                            });
+                        }
                     });
                     
                     listeners.add( {
@@ -85,6 +94,7 @@ export class GeneralProvider extends RequestProvider {
                         'connect': (socket) => {
                             const { client: { middleware } } = this;
                             this.connected = true;
+                            this.connecting = false;
     
                             console.info('Client::GeneralProvider::connect::connected');
     
@@ -109,8 +119,7 @@ export class GeneralProvider extends RequestProvider {
     
                             return middleware.trigger('disconnected', reason).then((reason) => {
                                 console.debug('Disconnected because: ', reason);
-                                this.connected = false;
-                                this.hooks.clear();
+                                this.resetConnection(false);
                             });
                         },
                         'error': (error) => {
@@ -122,13 +131,16 @@ export class GeneralProvider extends RequestProvider {
                         },
                         'connect_error': (error) => {
                             const { client: { middleware } } = this;
-                            console.debug('Connect timeout: ', error);
+                            this.connecting = false;
+                            console.debug('Connect Error: ', error);
                             middleware.trigger('connection_error', error).then((error) => {
                                 console.debug('Connect Error: ', error);
                             });
                         },
                         'connect_timeout': (error) => {
                             const { client: { middleware } } = this;
+                            this.connecting = false;
+                            
                             console.debug('Connect timeout: ', error);
                             return middleware.trigger('connection_timeout', error).then((error) => {
                                 console.debug('Connect timeout: ', error);
@@ -140,9 +152,21 @@ export class GeneralProvider extends RequestProvider {
         });
     };
    
-    disconnect() {
+    disconnect = () => {
         if(this.socket) this.socket.disconnect();
+        this.resetConnection('forced');
     }
+    
+    resetConnection = (intentional) => {
+        this.connected = false;
+        this.authenticated = false;
+        this.connecting = false;
+        this.hooks.clear();
+        if(intentional){
+            this.listeners.clear();
+        }
+    }
+    
     /**
      * Authenticate with the server before the timeout
      *
