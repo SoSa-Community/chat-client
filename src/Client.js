@@ -4,6 +4,7 @@ import {ChatService} from "./services/Chat.js";
 import {GeneralProvider} from "./providers/General.js";
 import {AuthService} from "./services/Auth.js";
 import {AuthProvider} from "./providers/Auth.js";
+import {MeetupService} from "./services/Meetups.js";
 
 /**
  * Object.prototype.forEach() polyfill
@@ -72,6 +73,7 @@ export class Client {
             auth: new AuthService(this),
             general: new GeneralService(this),
             chat: new ChatService(this),
+            meetups: new MeetupService(this)
         }
     }
 
