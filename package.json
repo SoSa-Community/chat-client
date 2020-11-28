@@ -1,7 +1,7 @@
 {
   "name": "sosa-chat-client",
   "type": "module",
-  "version": "0.0.9",
+  "version": "1.1.0",
   "main": "index.js",
   "description": "SoSa Chat Client Library",
   "directories": {
