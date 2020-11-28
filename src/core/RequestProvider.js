@@ -97,22 +97,24 @@ export class RequestProvider {
             return new Promise((resolve, reject) => {
                 let timeoutTimer = setTimeout(() => reject('Network Timed Out'), timeout);
                 
-                return fetch(endpoint, request)
+                fetch(endpoint, request)
                     .then((response) => {
                         clearTimeout(timeoutTimer);
-                        return response.json();
-                    }).then((json) => {
-                        console.info('Client::RequestProvider::Request::Response', json);
-                        if(json && json.session) {
-                            const { client: { sessionHandler } } = this;
-                            session.parseJSON(json.session);
-                            
-                            sessionHandler.updateSession(session).then(() => {
+                        response.json().then((json) => {
+                            console.info('Client::RequestProvider::Request::Response', json);
+                            if(json && json.session) {
+                                const { client: { sessionHandler } } = this;
+                                session.parseJSON(json.session);
+    
+                                sessionHandler.updateSession(session).then(() => {
+                                    resolve(json);
+                                })
+                            }else{
                                 resolve(json);
-                            })
-                        }else{
-                            resolve(json);
-                        }
+                            }
+                        }).catch((error) => {
+                            reject(error);
+                        });
                     })
             })
         });

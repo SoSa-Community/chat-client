@@ -71,12 +71,14 @@ export class ChatService {
                 return new Request(this.provider, 'rooms', 'join', data)
                     .run()
                     .then(({ data }) => {
-                          const { user_list, room: responseRoom } = data;
+                          const { user_list, room: responseRoom, history } = data;
                           
                           if(!room) room = new Room(this);
                           room.parseJSON(responseRoom);
                           
-                          return {room, userList: user_list};
+                          let parsedHistory = history.map((message) => Message.fromJSON(message));
+                          
+                          return {room, userList: user_list, history: parsedHistory};
                     }
                 );
             },

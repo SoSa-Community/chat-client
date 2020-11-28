@@ -34,6 +34,21 @@ export class AuthService {
 	login = (username, password) => {
 		return this.handleLoginRegister(username, password);
 	};
+    
+    logout = () => {
+        const { client : { middleware, sessionHandler: { updateSession } } } = this;
+        
+        return new Request(this.provider, '', 'logout', false, 'POST', true)
+            .run()
+            .catch((error) => {
+                console.debug('Client::Auth::logout::error', error);
+            })
+            .then(() => middleware.trigger('logout'))
+            .finally(() => {
+                return true;
+            })
+    };
+	
 
 	register = (username, password, email) => {
         return new Promise((resolve, reject) => {
@@ -84,13 +99,7 @@ export class AuthService {
         return this.handleAuthRequest( '', 'validate', {});
     };
     
-    logout = () => {
-        const { client : { sessionHandler: { updateSession } } } = this;
-        
-        return new Request(this.provider, '', 'logout', false, 'POST', true)
-            .run()
-            .then(() => updateSession(null).then(() => true));
-    };
+    
 
 	createPreauth = () => {
         const { client : { sessionHandler: { getDevice } } } = this;

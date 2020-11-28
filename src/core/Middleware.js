@@ -60,6 +60,7 @@ export class Middleware {
         return new Promise((resolve, reject) => {
             if(event){
                 let callbacks = [];
+                console.debug('Client::Middleware::trigger::namespace', event, this.middleware);
                 for(const namespace in this.middleware){
                     if(this.middleware[namespace].hasOwnProperty(event)){
                         callbacks = [...callbacks, ...Object.values(this.middleware[namespace][event]).map((middleware) =>
