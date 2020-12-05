@@ -1,34 +1,30 @@
-export class Meetup {
-
-    _id = '';
-    id = 0;
-    type = 'virtual';
+export class Comment {
+    
+    id = '';
+    community_id = null;
+    parent_id = '';
     user_id = 0;
-    community_id = '';
+    entity_type = 'meetup';
+    entity_id = '';
+    content = '';
     
-    title = '';
-    slug = '';
-    description = '';
-    start_datetime = new Date();
-    end_datetime = new Date();
-    timezone = 'UTC';
-    address1 = '';
-    address2 = '';
-    address3 = '';
-    city = '';
-    county = '';
-    postcode = '';
-    country = '';
-    latitude = 0.0;
-    longitude = 0.0;
-    privacy = 'public';
-    max_users = 0;
-    min_age = 0;
-    max_age = 0;
-    image = '';
+    parsed_content = '';
+    nsfw = false;
+    spoilers = false;
+    anonymous = false;
+    restricted_visibility = false;
+    embeds = [];
+    mentions = [];
+    links = [];
+    tags = [];
+    level = 1;
+    referer = '';
     
-    attendees = [];
-    comments = [];
+    nickname = '';
+    
+    created = new Date();
+    modified = new Date();
+    deleted = null;
 
     constructor(content='', communityID='') {
         if(content) this.content = content;
@@ -54,7 +50,6 @@ export class Meetup {
      */
     parseJSON(jsonData){
         jsonData.forEach((value, key) => {
-            if(key === 'start_datetime' || key === 'end_datetime') value = new Date(value);
             if(this.hasOwnProperty(key)) this[key] = value;
         })
     }
