@@ -5,7 +5,7 @@ import {GeneralProvider} from "./providers/General.js";
 import {AuthService} from "./services/Auth.js";
 import {AuthProvider} from "./providers/Auth.js";
 import {MeetupService} from "./services/Meetups.js";
-import {CommentService} from "./services/Comments";
+import {CommentService} from "./services/Comments.js";
 
 /**
  * Object.prototype.forEach() polyfill
