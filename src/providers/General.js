@@ -86,6 +86,7 @@ export class GeneralProvider extends RequestProvider {
                             const { request } = packet;
                             if(request){
                                 const { _id } = request;
+                                console.debug(request);
                                 if(_id) hooks.trigger(packet);
                             }
                             

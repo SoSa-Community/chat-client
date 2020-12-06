@@ -5,6 +5,7 @@ import {GeneralProvider} from "./providers/General.js";
 import {AuthService} from "./services/Auth.js";
 import {AuthProvider} from "./providers/Auth.js";
 import {MeetupService} from "./services/Meetups.js";
+import {CommentService} from "./services/Comments.js";
 
 /**
  * Object.prototype.forEach() polyfill
@@ -73,7 +74,8 @@ export class Client {
             auth: new AuthService(this),
             general: new GeneralService(this),
             chat: new ChatService(this),
-            meetups: new MeetupService(this)
+            meetups: new MeetupService(this),
+            comments: new CommentService(this)
         }
     }
 
@@ -103,6 +105,12 @@ export class Client {
             }
             return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
         });
+    }
+    
+    translateErrorCode(code){
+        const {config: { errors } } = this;
+        if(errors.hasOwnProperty(code)) return errors[code];
+        return code;
     }
 
 }

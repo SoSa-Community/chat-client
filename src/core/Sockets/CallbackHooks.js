@@ -1,5 +1,4 @@
 import { SoSaError } from '../../entities/SoSaError.js';
-import { Client } from "../../Client.js";
 
 export class CallbackHooks {
     
@@ -16,13 +15,22 @@ export class CallbackHooks {
         this.clear();
     }
 
-    trigger({request, error, data}){
+    trigger({request, errors, data}){
         const { _id: id } = request;
         
         if(id && typeof(this.hooks[id]) === 'function'){
             try{
+                if(errors){
+                    if(!Array.isArray(errors)) {errors = [errors];}
+                    errors = errors.map((error) => {
+                        const {code, message} = error;
+                        if(!message && code) error.message = this.provider.client.translateErrorCode(code);
+                        return SoSaError.fromJSON(error);
+                    });
+                }
+                
                 this.hooks[id](
-                            error ? new SoSaError(error.code, error.message) : null,
+                            errors,
                             data ? data : null,
                             request ? request : null
                 );

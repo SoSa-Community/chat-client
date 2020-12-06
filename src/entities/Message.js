@@ -1,7 +1,8 @@
 export class Message {
 
     _id = '';
-    id = 0;
+    id = '';
+    uuid = '';
     community_id = '';
     room_id = '';
     content = '';
