@@ -5,6 +5,7 @@ import {GeneralProvider} from "./providers/General.js";
 import {AuthService} from "./services/Auth.js";
 import {AuthProvider} from "./providers/Auth.js";
 import {MeetupService} from "./services/Meetups.js";
+import {ProfileService} from "./services/Profiles.js";
 import {CommentService} from "./services/Comments.js";
 
 /**
@@ -75,6 +76,7 @@ export class Client {
             general: new GeneralService(this),
             chat: new ChatService(this),
             meetups: new MeetupService(this),
+            profiles: new ProfileService(this),
             comments: new CommentService(this)
         }
     }
