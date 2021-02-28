@@ -1,35 +1,25 @@
-export class Comment {
+export class Profile {
+
+    _id = '';
     
-    id = '';
-    community_id = null;
-    parent_id = '';
     user_id = 0;
-    entity_type = 'meetup';
-    entity_id = '';
-    content = '';
+    nickname = '';
+    name = '';
+    tagline = '';
+    picture = '';
+    cover_picture = '';
+    about = '';
     
-    parsed_content = '';
-    nsfw = false;
-    spoilers = false;
-    anonymous = false;
-    restricted_visibility = false;
-    embeds = [];
-    mentions = [];
-    links = [];
-    tags = [];
-    level = 1;
-    referer = '';
+    from_location = '';
+    current_location = '';
     
-    user = {
-        user_id: '',
-        nickname: 'anonymous',
-        picture: 'https://picsum.photos/seed/picsum/300/300'
-    };
+    status = null;
+    gender = null;
+    age = 0;
     
-    
+    activity = new Date();
     created = new Date();
     modified = new Date();
-    deleted = null;
 
     constructor(content='', communityID='') {
         if(content) this.content = content;
@@ -55,6 +45,7 @@ export class Comment {
      */
     parseJSON(jsonData){
         jsonData.forEach((value, key) => {
+            if(['activity', 'created','modified'].includes(key)) value = new Date(value);
             if(this.hasOwnProperty(key)) this[key] = value;
         })
     }

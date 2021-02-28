@@ -19,9 +19,9 @@ export class GeneralProvider extends RequestProvider {
     }
     
     request = (request) => {
-        let { id, namespace, call, payload, method, requireAuth } = request;
-        
         return new Promise((resolve, reject) => {
+            let { id, namespace, call, payload, method, requireAuth } = request;
+            
             console.info('Client::GeneralProvider::request', request);
             this.connect()
                 .then(() => {
@@ -32,6 +32,7 @@ export class GeneralProvider extends RequestProvider {
                     payload._id = id;
 
                     hooks.add(id, (error, data) => {
+                        console.debug('Error', error);
                         if(error) reject(error);
                         else resolve({data, request});
                     });
@@ -86,7 +87,6 @@ export class GeneralProvider extends RequestProvider {
                             const { request } = packet;
                             if(request){
                                 const { _id } = request;
-                                console.debug(request);
                                 if(_id) hooks.trigger(packet);
                             }
                             

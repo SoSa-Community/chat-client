@@ -29,6 +29,9 @@ export class Meetup {
     
     attendees = [];
     comments = [];
+    
+    created = new Date();
+    modified = new Date();
 
     constructor(content='', communityID='') {
         if(content) this.content = content;
@@ -54,7 +57,7 @@ export class Meetup {
      */
     parseJSON(jsonData){
         jsonData.forEach((value, key) => {
-            if(key === 'start_datetime' || key === 'end_datetime') value = new Date(value);
+            if(['start_datetime','end_datetime', 'created','modified'].includes(key)) value = new Date(value);
             if(this.hasOwnProperty(key)) this[key] = value;
         })
     }

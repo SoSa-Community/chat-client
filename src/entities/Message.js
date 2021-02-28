@@ -8,8 +8,8 @@ export class Message {
     content = '';
     parsed_content = '';
     sent_datetime = '';
-    sender_uid = '';
-    nickname = '';
+    user_id = '';
+
     username = '';
     picture = '';
 
@@ -21,6 +21,12 @@ export class Message {
     mentions = [];
     links = [];
     tags = [];
+    
+    user = {
+        user_id: '',
+        nickname: 'anonymous',
+        picture: 'https://picsum.photos/seed/picsum/300/300'
+    }
 
     constructor(content='', communityID='', roomID='') {
         if(content) this.content = content;
