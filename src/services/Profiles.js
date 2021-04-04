@@ -11,7 +11,7 @@ export class ProfileService {
     
     constructor(client) {
         this.client = client;
-        this.provider = client.getProvider('meetups');
+        this.provider = client.getProvider('profiles');
     }
     
     get(id) {
@@ -22,5 +22,15 @@ export class ProfileService {
                 return Profile.fromJSON(profile);
             })
     }
+    
+    mine() {
+        return new Request(this.provider, 'profiles', 'mine', {})
+            .run()
+            .then(({data}) => {
+                const { profile } = data;
+                return Profile.fromJSON(profile);
+            })
+    }
+    
 
 }
