@@ -9,6 +9,7 @@ export class Profile {
     picture = '';
     cover_picture = '';
     about = '';
+    date_of_birth = '';
     
     from_location = '';
     current_location = '';

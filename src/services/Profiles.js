@@ -23,12 +23,36 @@ export class ProfileService {
             })
     }
     
-    mine() {
-        return new Request(this.provider, 'profiles', 'mine', {})
+    save(data) {
+        return new Request(
+            this.provider,
+            'profiles',
+            'save',
+            data
+        )
+        .run()
+        .then(({ data }) => {
+            const parsedProfile = Profile.fromJSON(data);
+            return parsedProfile;
+        })
+    }
+    
+    mine(forEditing=false) {
+        return new Request(
+            this.provider,
+            'profiles',
+            'mine',
+            { forEditing: Boolean(forEditing) }
+            )
             .run()
-            .then(({data}) => {
-                const { profile } = data;
-                return Profile.fromJSON(profile);
+            .then(({ data }) => {
+                const { profile, options, widgets } = data;
+                const parsedProfile = Profile.fromJSON(profile);
+                
+                if(!forEditing) return parsedProfile;
+                else {
+                    return { options, widgets, profile: parsedProfile };
+                }
             })
     }
     
